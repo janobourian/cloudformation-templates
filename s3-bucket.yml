@@ -1,0 +1,17 @@
+---
+Parameters:
+  BucketName:
+    Type: String
+    Description: Name of the S3 bucket to create
+    Default: my-current-s3-testing-bucket
+  DeletionPolicy:
+    Type: String
+    Description: Deletion policy for the S3 bucket
+    Default: Delete
+
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: !Ref DeletionPolicy
+    Properties:
+      BucketName: !Ref BucketName
