@@ -1,0 +1,26 @@
+---
+Parameters:
+  SQSName:
+    Type: String
+    Description: Name of the SQS queue to create
+    AllowedValues:
+      - my-current-sqs-testing-queue
+      - another-sqs-queue
+    Default: my-current-sqs-testing-queue
+  SNSName:
+    Type: String
+    Description: Name of the SNS topic to create
+    AllowedValues:
+      - my-current-sns-testing-topic
+      - another-sns-topic
+    Default: my-current-sns-testing-topic
+
+Resources:
+  SQSQueue:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: !Ref SQSName
+  SNSTopic:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: !Ref SNSName
