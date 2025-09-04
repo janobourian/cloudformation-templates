@@ -1,4 +1,11 @@
 ---
+Mappings:
+  RegionMap:
+    us-east-1:
+      MyAmplifyApp: react-app-frontend
+    us-east-2:
+      MyAmplifyApp: amplify-app-frontend
+
 Parameters:
   SQSName:
     Type: String
@@ -14,8 +21,37 @@ Parameters:
       - my-current-sns-testing-topic
       - another-sns-topic
     Default: my-current-sns-testing-topic
+  PersonalAccessToken:
+    Type: String
+    Description: Personal access token for authentication
+    NoEcho: true
+  PersonalGithubActionRepository:
+    Type: String
+    Description: GitHub repository for personal GitHub Actions
+    Default: user/repo
 
 Resources:
+  RoleForAmplify:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: amplify-app-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: 'amplify.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: amplify-app-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:*'
+                  - 'cloudfront:*'
+                Resource: '*'
   SQSQueue:
     Type: 'AWS::SQS::Queue'
     Properties:
@@ -24,3 +60,33 @@ Resources:
     Type: 'AWS::SNS::Topic'
     Properties:
       TopicName: !Ref SNSName
+  AmplifyApp:
+    Type: 'AWS::Amplify::App'
+    Properties:
+      Name: !FindInMap [RegionMap, !Ref "AWS::Region", MyAmplifyApp]
+      Repository: !Ref PersonalGithubActionRepository
+      AccessToken: !Ref PersonalAccessToken
+      RoleArn: !GetAtt RoleForAmplify.Arn
+      BuildSpec: |
+        version: 1
+        frontend:
+          phases:
+            preBuild:
+              commands:
+                - npm ci
+            build:
+              commands:
+                - npm run build
+          artifacts:
+            baseDirectory: build
+            files:
+              - '**/*'
+          cache:
+            paths:
+              - node_modules/**/*
+  MainBranch:
+    Type: 'AWS::Amplify::Branch'
+    Properties:
+      AppId: !Ref AmplifyApp.AppId
+      BranchName: main
+      EnableAutoBuild: true
