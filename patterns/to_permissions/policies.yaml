@@ -32,4 +32,3 @@ Resources:
       Path: /
       Roles:
         - !Ref ChatwootInstanceRole
-      
